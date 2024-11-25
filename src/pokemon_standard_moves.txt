@@ -1,0 +1,1 @@
+Move Name: Thunderbolt, Energies: Electric; Electric, Damage: 50, Effect Function: thunderbolt_effect
