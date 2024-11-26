@@ -8,31 +8,31 @@ class PokemonFileReader:
 
     Attributes:
         types: A set of allowed types.
-        moves: A dictionary of allowed moves where the key is the name and the value a pokemon_move object
-        logger: A general logger passed from logger.py 
+        moves: A dictionary of allowed moves where the key is the name and the value a pokemon_move object.
+        logger: A general logger passed from logger.py .
     """
 
     def __init__(self):
-        """Initializes the instance with default values"""
-        
+        """Initializes the instance with default values."""
+
         self.types = set()
         self.moves = dict()
         self.logger = get_logger(__name__)
 
     def read_all_types(self):
-        """Reads allowed types from files
+        """Reads allowed types from files.
 
         Reads allowed types from pokemon_standard_types.txt and pokemon_custom_types.txt 
         and stores in self.types. 
         
         - If no standard file is provided, it does not read from
-        any file
+        any file.
         - If no custom file is provided, but a standard file exists,
-        reads only from standard
-        - If both are provided, reads from both files
+        reads only from standard.
+        - If both are provided, reads from both files.
 
         Returns:
-            A set, self.types, which stores the valid types
+            A set, self.types, which stores the valid types.
         """
 
         # Reads from pokemon_standard_types.txt
