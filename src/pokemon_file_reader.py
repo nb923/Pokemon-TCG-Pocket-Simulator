@@ -9,7 +9,7 @@ class PokemonFileReader:
     Attributes:
         types: A set of allowed types.
         moves: A dictionary of allowed moves where the key is the name and the value a pokemon_move object.
-        logger: A general logger passed from logger.py .
+        logger: A general logger passed from logger.py.
     """
 
     def __init__(self):
