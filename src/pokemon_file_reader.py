@@ -58,6 +58,46 @@ class PokemonFileReader:
 
         return self.types
     
+    def read_all_moves(self):
+        """Reads valid moves from files.
+        
+        Reads valid moves from pokemon_standard_moves.txt and pokemon_custom_moves.txt
+        and stores in self.moves. If a file doesn't exist, or contains invalid moves,
+        skips file/all invalid moves.
+
+        Returns:
+            A dictionary, self.moves, which stores move name -> pokemon_move object.
+        """
+
+        # Reads from pokemon_standard_moves.txt
+        if Path("pokemon_standard_moves.txt").exists():
+            with open("pokemon_standard_moves.txt", 'r') as file:
+                for line in file:
+                    move = self.read_move(line)
+
+                    if move is not None:
+                        self.moves[move.name] = move 
+
+            self.logger.info("Imported standard moves from file")
+        else:
+            self.logger.error("Cannot locate custom moves file, pokemon_standard_moves.txt, did not import any moves")
+            return dict()
+
+        # Reads from pokemon_custom_moves.txt
+        if Path("pokemon_custom_moves.txt").exists():
+            with open("pokemon_custom_moves.txt", 'r') as file:
+                for line in file:
+                    move = self.read_move(line)
+
+                    if move is not None:
+                       self.moves[move.name] = move 
+
+            self.logger.info("Imported custom moves from file")
+        else:
+            self.logger.info("Cannot locate custom moves file, pokemon_custom_moves.txt, did not import any custom moves")
+
+        return self.moves
+    
     def read_move(self, move_text):
         """Reads a move from a text string
 
