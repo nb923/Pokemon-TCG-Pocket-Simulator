@@ -1,4 +1,6 @@
 class PokemonAbility:
     def __init__(self):
-        self.active = None
+        self.passive = None
+        self.activation_condition = None
+        self.usable = None
         self.effect = None 
