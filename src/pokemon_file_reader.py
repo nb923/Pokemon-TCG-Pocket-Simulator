@@ -82,7 +82,7 @@ class PokemonFileReader:
 
             self.logger.info("Imported standard moves from file")
         else:
-            self.logger.error("Cannot locate custom moves file, pokemon_standard_moves.txt, did not import any moves")
+            self.logger.error("Cannot locate standard moves file, pokemon_standard_moves.txt, did not import any moves")
             return dict()
 
         # Reads from pokemon_custom_moves.txt
