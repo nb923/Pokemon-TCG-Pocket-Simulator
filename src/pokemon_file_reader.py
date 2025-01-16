@@ -1,4 +1,5 @@
 import pokemon_move
+import pokemon_ability
 import importlib
 from pathlib import Path
 from logger import get_logger
@@ -17,6 +18,7 @@ class PokemonFileReader:
 
         self.types = set()
         self.moves = dict()
+        self.abilities = dict()
         self.logger = get_logger(__name__)
 
     def read_all_types(self):
@@ -80,7 +82,7 @@ class PokemonFileReader:
 
             self.logger.info("Imported standard moves from file")
         else:
-            self.logger.error("Cannot locate custom moves file, pokemon_standard_moves.txt, did not import any moves")
+            self.logger.error("Cannot locate standard moves file, pokemon_standard_moves.txt, did not import any moves")
             return dict()
 
         # Reads from pokemon_custom_moves.txt
@@ -97,7 +99,47 @@ class PokemonFileReader:
             self.logger.info("Cannot locate custom moves file, pokemon_custom_moves.txt, did not import any custom moves")
 
         return self.moves
-    
+
+    def read_all_abilities(self):
+        """Reads valid abilities from files.
+        
+        Reads valid abilities from pokemon_standard_abilities.txt and pokemon_custom_abilities.txt
+        and stores in self.abilities. If a file doesn't exist, or contains invalid abilities,
+        skips file/all invalid abilities.
+
+        Returns:
+            A dictionary, self.abilities, which stores ability name -> pokemon_ability object.
+        """
+
+        # Reads from pokemon_standard_abilities.txt
+        if Path("pokemon_standard_abilities.txt").exists():
+            with open("pokemon_standard_abilities.txt", 'r') as file:
+                for line in file:
+                    ability = self.read_ability(line)
+
+                    if ability is not None:
+                        self.abilities[ability.name] = ability 
+
+            self.logger.info("Imported standard abilities from file")
+        else:
+            self.logger.error("Cannot locate standard abilities file, pokemon_standard_abilities.txt, did not import any abilities")
+            return dict()
+
+        # Reads from pokemon_custom_abilities.txt
+        if Path("pokemon_custom_abilities.txt").exists():
+            with open("pokemon_custom_abilities.txt", 'r') as file:
+                for line in file:
+                    ability = self.read_ability(line)
+
+                    if ability is not None:
+                       self.abilities[ability.name] = ability 
+
+            self.logger.info("Imported custom abilities from file")
+        else:
+            self.logger.info("Cannot locate custom abilities file, pokemon_custom_abilities.txt, did not import any custom abilities")
+
+        return self.abilities
+
     def read_move(self, move_text):
         """Reads a move from a text string
 
@@ -209,3 +251,146 @@ class PokemonFileReader:
             return None
 
         return move
+    
+    def read_ability(self, ability_text):
+        """Reads an ability from a text string.
+
+        Reads a ability from a string in the form "Ability Name: [Name], Type: [Active or Passive], Activation Function: [Name of Activation Function], Effect Function: [Name of Effect Function]".
+
+        For example: "Ability Name: Wash Out, Type: Active, Activation Function: wash_out_activation, Effect Function: wash_out_effect".
+
+        Activation functions will be stored in either pokemon_standard_ability_activation_list.py for standard abilities and
+        pokemon_custom_ability_activation_list.py for custom abilities.
+
+        Effect functions will be stored in either pokemon_standard_ability_effect_list.py for standard abilities and
+        pokemon_custom_ability_effect_list.py for custom abilities.
+
+        If formatting of string is incorrect, no name is given, the type is not Active or Passive, or the activation or 
+        effect function does not exist, then returns None.
+
+        Args:
+            ability_text: A string that contains an encoded ability.
+        
+        Returns:
+            A pokemon_ability object that stores the ability's details; None is returned if invalid input.
+        """
+
+        ability_elements = ability_text.split(", ")
+
+        if len(ability_elements) != 4:
+            self.logger.error(f"Error in formatting of ability: {ability_text}")
+            return None
+
+        ability = pokemon_ability.PokemonAbility()
+
+        ability.usable = False
+
+        # Reads ability name
+        ability_name_split = ability_elements[0].split("Ability Name:")
+
+        if len(ability_name_split) != 2:
+            self.logger.error(f"Error in formatting of ability name for ability: {ability_text}")
+            return None
+        elif len(ability_name_split[1].strip()) == 0:
+            self.logger.error(f"No name is given for ability: {ability_text}")
+            return None
+        
+        ability.name = ability_name_split[1].strip()
+
+        # Reads ability type
+        ability_type_split = ability_elements[1].split("Type:")
+
+        if len(ability_type_split) != 2:
+            self.logger.error(f"Error in formatting of ability type for ability: {ability_text}")
+            return None
+        elif ability_type_split[1].strip().lower() not in ("passive", "active"):
+            self.logger.error(f"Type value for ability is not passive or active in ability: {ability_text}")
+            return None
+
+        ability.passive = True if ability_type_split[1].strip().lower() == "passive" else False
+
+        # Reads ability activation function
+        ability_activation_split = ability_elements[2].split("Activation Function:")
+
+        if len(ability_activation_split) != 2:
+            self.logger.error(f"Error in formatting of ability activation function for ability: {ability_text}")
+            return None
+        elif ability_activation_split[1].strip() == "None":
+            ability.activation_condition = None
+        else:
+            standard_function_list = None
+            custom_function_list = None
+            
+            standard_exists = False
+            custom_exists = False
+            
+            if Path.exists("pokemon_standard_ability_activation_list.py"):
+                standard_function_list = importlib.import_module("pokemon_standard_ability_activation_list")
+                standard_exists = True
+        
+            if Path.exists("pokemon_custom_ability_activation_list.py"):
+                custom_function_list = importlib.import_module("pokemon_custom_ability_activation_list")
+                custom_exists = True
+            
+            if standard_exists and ability_activation_split[1].strip() in dir(standard_function_list):
+                ability.activation_condition = getattr(standard_function_list, ability_activation_split[1].strip())
+            elif custom_exists and ability_activation_split[1].strip() in dir(custom_function_list):
+                ability.activation_condition = getattr(custom_function_list, ability_activation_split[1].strip())
+            else:
+                self.logger.error(f"Ability activation function does not exist for ability: {ability_text}")
+                return None
+
+        # Reads ability effect
+        ability_effect_split = ability_elements[3].split("Effect Function:")
+
+        if len(ability_effect_split) != 2:
+            self.logger.error(f"Error in formatting of ability effect function for ability: {ability_text}")
+            return None
+        elif ability_effect_split[1].strip() == "None":
+            ability.effect = None
+            return ability
+        
+        standard_function_list = None
+        custom_function_list = None
+        
+        standard_exists = False
+        custom_exists = False
+        
+        if Path.exists("pokemon_standard_ability_effect_list.py"):
+            standard_function_list = importlib.import_module("pokemon_standard_ability_effect_list")
+            standard_exists = True
+       
+        if Path.exists("pokemon_custom_ability_effect_list.py"):
+            custom_function_list = importlib.import_module("pokemon_custom_ability_effect_list")
+            custom_exists = True
+        
+        if standard_exists and ability_effect_split[1].strip() in dir(standard_function_list):
+            ability.effect = getattr(standard_function_list, ability_effect_split[1].strip())
+        elif custom_exists and ability_effect_split[1].strip() in dir(custom_function_list):
+            ability.effect = getattr(custom_function_list, ability_effect_split[1].strip())
+        else:
+            self.logger.error(f"Ability effect function does not exist for ability: {ability_text}")
+            return None
+
+        return ability
+    
+    # NOTE: Create abilities to import
+    #   - Passive or active
+    #   - Activation condition function
+    #   - Usable or unusable (based on activation condition)
+    #   - Ability effect function
+
+    # pokemon standard and custom ability files
+    # pokemon standard and custom move activation functions
+    # pokemon standard and custom move ability effect function
+
+    # two functions, one class:
+    #   read an ability function
+    #   read all abilities function
+    #   ability class
+
+    # Note: Ability and move text will be stored in the effect function, where if param is None instead of board returns text of move
+
+    # TODO: 
+    #   - Create and test read all abilities function
+    #   - Create two test cases for parameter dependent activation and effect functions

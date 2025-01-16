@@ -1,0 +1,1 @@
+Ability Name: Wash Out, Type: Active, Activation Function: wash_out_activation, Effect Function: wash_out_effect

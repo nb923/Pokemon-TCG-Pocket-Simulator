@@ -181,10 +181,10 @@ Move Name: Holy Beam, Energies: Holy; Holy, Damage: 100, Effect Function: None
 
     assert moves == expected_moves
 
-    assert "Cannot locate custom moves file, pokemon_standard_moves.txt, did not import any moves" in caplog.text
+    assert "Cannot locate standard moves file, pokemon_standard_moves.txt, did not import any moves" in caplog.text
 
 def test_no_files_exist(reader, mock_files, caplog):
-    """Test if only standard file exists and have valid content."""
+    """Test if no files exist."""
 
     file_exists_map = {
         "pokemon_standard_moves.txt": False,
@@ -216,10 +216,10 @@ Move Name: Holy Beam, Energies: Holy; Holy, Damage: 100, Effect Function: None
 
     assert moves == expected_moves
 
-    assert "Cannot locate custom moves file, pokemon_standard_moves.txt, did not import any moves" in caplog.text
+    assert "Cannot locate standard moves file, pokemon_standard_moves.txt, did not import any moves" in caplog.text
 
 def test_both_files_exist_both_have_some_invalid_moves(reader, mock_files, caplog):
-    """Test if both files exist and have valid content."""
+    """Test if both files exist and some are invalid lines."""
 
     file_exists_map = {
         "pokemon_standard_moves.txt": True,
