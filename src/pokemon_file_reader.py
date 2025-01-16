@@ -18,6 +18,7 @@ class PokemonFileReader:
 
         self.types = set()
         self.moves = dict()
+        self.abilities = dict()
         self.logger = get_logger(__name__)
 
     def read_all_types(self):
@@ -98,7 +99,47 @@ class PokemonFileReader:
             self.logger.info("Cannot locate custom moves file, pokemon_custom_moves.txt, did not import any custom moves")
 
         return self.moves
-    
+
+    def read_all_abilities(self):
+        """Reads valid abilities from files.
+        
+        Reads valid abilities from pokemon_standard_abilities.txt and pokemon_custom_abilities.txt
+        and stores in self.abilities. If a file doesn't exist, or contains invalid abilities,
+        skips file/all invalid abilities.
+
+        Returns:
+            A dictionary, self.abilities, which stores ability name -> pokemon_ability object.
+        """
+
+        # Reads from pokemon_standard_abilities.txt
+        if Path("pokemon_standard_abilities.txt").exists():
+            with open("pokemon_standard_abilities.txt", 'r') as file:
+                for line in file:
+                    ability = self.read_ability(line)
+
+                    if ability is not None:
+                        self.abilities[ability.name] = ability 
+
+            self.logger.info("Imported standard abilities from file")
+        else:
+            self.logger.error("Cannot locate standard abilities file, pokemon_standard_abilities.txt, did not import any abilities")
+            return dict()
+
+        # Reads from pokemon_custom_abilities.txt
+        if Path("pokemon_custom_abilities.txt").exists():
+            with open("pokemon_custom_abilities.txt", 'r') as file:
+                for line in file:
+                    ability = self.read_ability(line)
+
+                    if ability is not None:
+                       self.abilities[ability.name] = ability 
+
+            self.logger.info("Imported custom abilities from file")
+        else:
+            self.logger.info("Cannot locate custom abilities file, pokemon_custom_abilities.txt, did not import any custom abilities")
+
+        return self.abilities
+
     def read_move(self, move_text):
         """Reads a move from a text string
 
@@ -333,7 +374,7 @@ class PokemonFileReader:
 
         return ability
     
-    # TODO: Create abilities to import
+    # NOTE: Create abilities to import
     #   - Passive or active
     #   - Activation condition function
     #   - Usable or unusable (based on activation condition)
@@ -349,3 +390,7 @@ class PokemonFileReader:
     #   ability class
 
     # Note: Ability and move text will be stored in the effect function, where if param is None instead of board returns text of move
+
+    # TODO: 
+    #   - Create and test read all abilities function
+    #   - Create two test cases for parameter dependent activation and effect functions
