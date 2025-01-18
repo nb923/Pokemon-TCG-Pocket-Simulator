@@ -373,24 +373,3 @@ class PokemonFileReader:
             return None
 
         return ability
-    
-    # NOTE: Create abilities to import
-    #   - Passive or active
-    #   - Activation condition function
-    #   - Usable or unusable (based on activation condition)
-    #   - Ability effect function
-
-    # pokemon standard and custom ability files
-    # pokemon standard and custom move activation functions
-    # pokemon standard and custom move ability effect function
-
-    # two functions, one class:
-    #   read an ability function
-    #   read all abilities function
-    #   ability class
-
-    # Note: Ability and move text will be stored in the effect function, where if param is None instead of board returns text of move
-
-    # TODO: 
-    #   - Create and test read all abilities function
-    #   - Create two test cases for parameter dependent activation and effect functions
